@@ -155,6 +155,47 @@ button:disabled{opacity:.45;cursor:default}
 }
 .focusbtn{position:fixed;right:22px;top:18px;z-index:60;opacity:.8}
 #fgo{right:130px}
+/* guide */
+.guide{position:fixed;inset:max(3vh,14px) max(3vw,14px);z-index:68;background:var(--sheet);color:var(--ink);border-radius:18px;border-top:6px solid var(--wood);overflow:auto;padding:0 clamp(16px,3vw,34px) 34px;box-shadow:0 20px 60px rgba(0,0,0,.6);max-width:1100px;margin:auto}
+.guide[hidden]{display:none}
+.ghead{position:sticky;top:0;background:var(--sheet);padding:18px 0 10px;z-index:2;border-bottom:1px solid #eadfcb}
+.ghead .row{justify-content:space-between}
+.guide h2{font:700 clamp(26px,3.4vw,38px)/1.05 Cambria,Georgia,serif;margin:0}
+.guide h2 em{color:var(--roseL)}
+.gtabs{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.gtabs button,.guide .btn{background:#fff;color:var(--ink);border-color:#d8cbb3}
+.gtabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.guide .btn.primary{background:var(--roseF);color:#fff;border-color:var(--roseF)}
+.guide h3{font:700 22px/1.2 Cambria,Georgia,serif;margin:26px 0 8px}
+.guide h4{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--goldL);margin:20px 0 6px}
+.guide p,.guide li{max-width:72ch}
+.guide ul,.guide ol{padding-left:22px}
+.guide li{margin:5px 0}
+.guide .lead{font-size:18px;color:var(--inkm);margin-top:14px}
+.gex{background:#fff;border:1px solid #eadfcb;border-radius:14px;padding:6px 4px;margin:10px 0;overflow:hidden;min-height:60px}
+.gex svg{max-width:100%;height:auto}
+.mn{font:italic 16px Georgia,serif;color:var(--inkm)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px 24px}
+.card{background:#fff;border:1px solid #eadfcb;border-radius:14px;padding:12px 16px}
+.card h4{margin-top:4px}
+.steps{list-style:none;padding:0;counter-reset:s;display:grid;gap:8px}
+.steps li{display:grid;grid-template-columns:2.2em 1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid #eadfcb;border-radius:14px;padding:10px 14px;counter-increment:s;max-width:none}
+.steps li::before{content:counter(s);font:700 22px Cambria,Georgia,serif;color:var(--roseL)}
+.steps b{display:block}
+.kbd{display:block;width:100%;max-width:640px;height:auto}
+.calc{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.calc input,.calc select{background:#fff;color:var(--ink);border-color:#d8cbb3}
+.calc output{font:700 20px Cambria,Georgia,serif}
+.trainer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center}
+.trainer .gex{min-height:150px;display:grid;place-items:center}
+#trfb{font:700 22px/1.2 Cambria,Georgia,serif;min-height:1.3em}
+#trfb.ok{color:var(--turqL)}#trfb.no{color:var(--garnetL)}
+.trstats{display:flex;gap:18px;flex-wrap:wrap;color:var(--inkm);font-size:15px}
+.trstats b{font:700 20px Cambria,Georgia,serif;color:var(--ink)}
+.hands{display:flex;justify-content:center;gap:40px;font:700 18px Cambria,Georgia,serif;margin:8px 0}
+.hands span{display:flex;gap:10px}.hands i{font-style:normal;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid #d8cbb3}
+.hands i.th{background:var(--roseF);color:#fff;border-color:var(--roseF)}
+@media(max-width:760px),(max-height:560px){.guide{inset:6px;padding:0 14px 24px}.trainer{grid-template-columns:1fr}.steps li{grid-template-columns:1.6em 1fr}.steps li button{grid-column:2}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -175,6 +216,7 @@ button:disabled{opacity:.45;cursor:default}
   <div class="bar">
     <button class="short pill" id="mconn2" aria-label="Connect MIDI"><i></i><span>MIDI</span></button>
     <button class="tech" id="topen">Technique</button>
+    <button class="tech" id="gopen">Guide</button>
     <label class="file">Open score<input type="file" id="file" accept=".musicxml,.xml,.mxl,.pdf,.png,.jpg,.jpeg,.webp,.gif"></label>
     <button id="sample">Sample</button>
     <span class="sep"></span>
@@ -245,6 +287,138 @@ button:disabled{opacity:.45;cursor:default}
   <table class="prog" id="prog"></table>
 </aside>
 
+<div class="guide" id="guide" hidden role="dialog" aria-label="Practice guide">
+  <div class="ghead">
+    <div class="row"><h2>Practice <em>guide</em></h2><button class="btn" id="gclose">Close</button></div>
+    <div class="gtabs" role="tablist">
+      <button role="tab" data-g="ex" aria-selected="true">This exercise</button>
+      <button role="tab" data-g="read" aria-selected="false">Reading notation</button>
+      <button role="tab" data-g="tempo" aria-selected="false">Tempo practice</button>
+      <button role="tab" data-g="hands" aria-selected="false">Hand movement</button>
+    </div>
+  </div>
+
+  <section data-gp="ex" id="gex"></section>
+
+  <section data-gp="read" hidden>
+    <p class="lead">Reading music is pattern recognition. You don't name every note: you find the first note, then read the <b>shape</b> (steps, skips, chords) and the <b>rhythm</b>. These are the pieces you need for the exercises in this app.</p>
+
+    <h3>1. Where the notes are on the keyboard</h3>
+    <p>The black keys come in groups of two and three. <b>C</b> is the white key just left of each group of two. The C nearest the middle of the piano is <b>middle C (C4)</b>, shown in pink; the number is the octave, counting up from the bottom.</p>
+    <svg class="kbd" id="gkbd" viewBox="0 0 640 120" role="img" aria-label="Two octaves of keyboard with C3, C4 (middle C) and C5 marked"></svg>
+
+    <h3>2. The two staves</h3>
+    <p>Piano music uses two staves joined by a brace. The <b>treble clef</b> (top, usually right hand) and the <b>bass clef</b> (bottom, usually left hand). Middle C sits on a short extra line between them.</p>
+    <div class="two">
+      <div><h4>Treble clef</h4><div class="gex" data-x="treble"></div><p class="mn">Lines: E G B D F, "Every Good Boy Does Fine". Spaces: F A C E.</p></div>
+      <div><h4>Bass clef</h4><div class="gex" data-x="bass"></div><p class="mn">Lines: G B D F A, "Good Boys Do Fine Always". Spaces: A C E G, "All Cows Eat Grass".</p></div>
+    </div>
+    <p><b>Ledger lines</b> are short extra lines above or below a staff. Count them like normal lines: one ledger line below the treble staff is middle C, one above is A5.</p>
+
+    <h3>3. Note lengths and counting</h3>
+    <p>The click of the metronome is the <b>beat</b>. In 4/4 there are four beats per bar. Shorter notes split the beat:</p>
+    <div class="gex" data-x="values"></div>
+    <div class="two">
+      <div class="card"><h4>Per click</h4><ul><li>Quarter note: 1 note</li><li>8th notes (one beam): 2 notes, count "1-and"</li><li>Triplets (a 3 over the group): 3 notes, "1-trip-let"</li><li>16th notes (two beams): 4 notes, "1-e-and-a"</li><li>Sextuplets: 6 notes, two triplets in one click</li></ul></div>
+      <div class="card"><h4>Dots and ties</h4><ul><li>A <b>dot</b> adds half the note's length: a dotted quarter lasts 1½ beats.</li><li>A <b>tie</b> joins two notes of the same pitch: play once and hold for both.</li><li>A <b>slur</b> is the same curve over different notes: play them legato (smoothly connected).</li></ul></div>
+    </div>
+    <h4>Rests: silence of the same lengths</h4>
+    <div class="gex" data-x="rests"></div>
+
+    <h3>4. Key signatures and accidentals</h3>
+    <p>The sharps or flats at the start of each line are the <b>key signature</b>: they apply to that note in every octave for the whole piece. An <b>accidental</b> next to a note (♯ sharp, ♭ flat, ♮ natural) changes it until the end of that bar only. This is D minor: one flat (B♭), with C♯ added as an accidental.</p>
+    <div class="gex" data-x="keys"></div>
+
+    <h3>5. Fingering, articulation and voices</h3>
+    <div class="gex" data-x="marks"></div>
+    <ul>
+      <li><b>Finger numbers</b> above or below notes: thumb is 1, little finger 5, in both hands.</li>
+      <li><b>Dots</b> under or over notes mean staccato: short and detached.</li>
+      <li><b>Two voices on one staff</b>: stems up are one voice, stems down another. In "Hold and move", the stems-down whole note is held while the stems-up notes move.</li>
+    </ul>
+    <div class="hands" aria-label="Finger numbers"><span>Left <i>5</i><i>4</i><i>3</i><i>2</i><i class="th">1</i></span><span><i class="th">1</i><i>2</i><i>3</i><i>4</i><i>5</i> Right</span></div>
+
+    <h3>6. How to read an exercise before you play</h3>
+    <ol>
+      <li>Find the <b>key</b> (key signature) and the <b>first note of each hand</b>.</li>
+      <li>Find the <b>pattern</b>: does it go up by step (scale), by skip (chord), or repeat? Almost every exercise is one pattern moved around.</li>
+      <li>Find the <b>highest and lowest</b> notes, and where the <b>thumb</b> passes (the finger numbers).</li>
+      <li>Check the <b>rhythm</b>: how many notes per click.</li>
+      <li>While playing, keep your eyes <b>one beat ahead</b> of your hands. Don't look down unless you're jumping.</li>
+    </ol>
+
+    <h3>7. Note-reading trainer</h3>
+    <p>A note appears; play it on your piano. Five minutes a day makes reading much faster.</p>
+    <div class="trainer">
+      <div class="gex" id="trnote"></div>
+      <div>
+        <div class="calc">
+          <select id="trclef" aria-label="Staff"><option value="G">Treble</option><option value="F">Bass</option><option value="both">Both</option></select>
+          <select id="trset" aria-label="Range"><option value="staff">On the staff</option><option value="ledger">With ledger lines</option></select>
+          <label><input type="checkbox" id="tracc"> Sharps and flats</label>
+        </div>
+        <p id="trfb">Press Start, then play the note you see.</p>
+        <div class="row"><button class="btn primary" id="trgo">Start</button><button class="btn" id="trshow">Show answer</button></div>
+        <div class="trstats"><span><b id="trok">0</b> right</span><span><b id="trbad">0</b> wrong</span><span><b id="trtime">–</b> avg time</span><span><b id="trstreak">0</b> streak</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section data-gp="tempo" hidden>
+    <p class="lead">Speed comes from accuracy repeated, not from trying to be fast. The rule: <b>never practise mistakes at speed</b>. Every clean slow repetition makes the next tempo possible.</p>
+    <h3>What the numbers mean</h3>
+    <div class="calc"><label>BPM <input type="number" id="cbpm" value="60" min="20" max="240"></label><select id="cunit"><option value="1">Quarter notes</option><option value="2">8th notes</option><option value="3">Triplets</option><option value="4" selected>16th notes</option><option value="6">Sextuplets</option></select><output id="cout"></output></div>
+    <p>BPM is clicks per minute; each click is a quarter-note beat. At 60 BPM there is one click per second, so 16ths are 4 notes per second. Concert speed for many 16th-note passages is 112–132 BPM (7–9 notes per second); start well below that.</p>
+
+    <h3>The method</h3>
+    <ol class="steps">
+      <li><span><b>Notes first, no clock</b>Use <i>Wait for me</i>. The music only moves when you play the right notes, so you learn notes and fingering with no time pressure. Hands separately, then together.</span></li>
+      <li><span><b>Start slow on the click</b>Switch to <i>Test at tempo</i> at about 60% of the suggested tempo. It should feel almost too easy. Count aloud during the count-in.</span></li>
+      <li><span><b>Two clean runs, then +4</b>A clean run means the report says <i>Clean</i>. After two clean runs in a row, press <i>Faster</i> (+4 BPM).</span></li>
+      <li><span><b>Two misses, then −8</b>If you fail twice at the same tempo, go 8 BPM slower, get two clean runs, and climb again. Bouncing around the edge is how the ceiling rises.</span></li>
+      <li><span><b>Fix the weak spot, not the whole</b>The report names your least steady bar. Loop just that bar plus the first note of the next, in Wait for me, then at tempo.</span></li>
+      <li><span><b>Finish musically</b>End each exercise with one run at a comfortable tempo, playing it as music: even, shaped, relaxed.</span></li>
+    </ol>
+    <h3>Tricks that speed things up</h3>
+    <div class="two">
+      <div class="card"><h4>Dotted rhythms</h4>Play a 16th-note run as long-short, long-short, then short-long. Each pair of fingers learns to move fast in turn. Then play it even again: it will feel easier.</div>
+      <div class="card"><h4>Bursts</h4>Play one group of 4 notes fast and stop on the next beat note. Then 2 groups, then 4. Your hand learns the movement at full speed while you stay in control.</div>
+      <div class="card"><h4>Accents</h4>Accent every 3rd note in a 16th run, then every 4th. Moving the accent stops one finger always being weak.</div>
+      <div class="card"><h4>Short sessions</h4>10–15 minutes of technique, then repertoire. Two short sessions beat one long one, and sleep consolidates what you practised.</div>
+    </div>
+    <h3>Reading the report</h3>
+    <ul>
+      <li><b>Timing spread</b> (±ms): how even you are. Below the target is clean. Professional evenness in scales is around ±10–15 ms.</li>
+      <li><b>Average timing</b>: negative means rushing, positive dragging. Most people rush when nervous.</li>
+      <li><b>Hands together</b>: how far apart notes meant to be together land. Under 15 ms sounds as one.</li>
+      <li><b>Loudness ±%</b>: unevenness in volume. Look at the lower panel of the chart for spikes on thumb crossings.</li>
+    </ul>
+  </section>
+
+  <section data-gp="hands" hidden>
+    <p class="lead">Fast, even playing comes from the arm and the hand working together with as little tension as possible. Fingers alone are small and tire quickly; let the arm put them in place.</p>
+    <h3>Set-up</h3>
+    <div class="two">
+      <div class="card"><h4>Sitting</h4><ul><li>Forearms level with the keys, or slightly higher.</li><li>Sit on the front half of the bench, close enough that elbows are a little in front of your body.</li><li>Feet flat; lean very slightly forward.</li></ul></div>
+      <div class="card"><h4>Hand shape</h4><ul><li>A natural curve, like holding a small ball.</li><li>Play on the fingertips; the thumb on the side of its tip.</li><li>Wrist level with the hand, not dropped, not high.</li><li>Shoulders down. Check them at every rest.</li></ul></div>
+    </div>
+    <h3>The movements</h3>
+    <div class="two">
+      <div class="card"><h4>Thumb under (scales)</h4>Move the thumb under the palm while fingers 2–3 play, so it arrives over its key early. The elbow drifts sideways with the hand; the wrist stays straight. Going down, 3 or 4 crosses over the thumb with a small lift and pivot.</div>
+      <div class="card"><h4>Lateral glide (arpeggios)</h4>The forearm carries the hand along the keyboard at a steady speed; fingers don't stretch. Turn the wrist slightly in the direction of travel just before the thumb passes.</div>
+      <div class="card"><h4>Rotation (broken octaves, Alberti)</h4>Rock the forearm like turning a doorknob between thumb and fifth finger. Fingers stay passive and close to the keys.</div>
+      <div class="card"><h4>Wrist (octaves, staccato)</h4>Lock the hand in the octave shape (1–5, or 1–4 on black keys) and play with a small down-up bounce of the wrist. Stay near the fallboard on black keys. Rest at every pause.</div>
+      <div class="card"><h4>Leaps</h4>Look at the target, not your hand. Move early and fast in a low arc, shape the chord in the air, land gently on the key surface and then play. The time is spent in the air, not on arrival.</div>
+      <div class="card"><h4>Hand crossings</h4>The crossing hand goes over, not under: lift it higher and move from the shoulder. The hand underneath stays low and keeps its rhythm.</div>
+      <div class="card"><h4>Independence (two voices)</h4>A held note needs only enough weight to keep the key down. Moving fingers play from the knuckle with the hand loose. If the hand tightens, slow down.</div>
+      <div class="card"><h4>Voicing</h4>Lean the arm's weight towards the melody finger, usually 4–5: a firm fingertip there, the other fingers barely touching their keys.</div>
+      <div class="card"><h4>Batteries and repeated notes</h4>Hands close together, small light wrist movements like drumming. For repeated notes, pull fingers 4-3-2-1 towards you off the key with a shallow stroke.</div>
+    </div>
+    <h3>Tension check</h3>
+    <p>After each run, drop your hands in your lap and shake them out. Burning in the forearm, a tight thumb or raised shoulders mean stop, rest and slow down. <b>Pain is never part of practice.</b></p>
+  </section>
+</div>
+
 <div class="res" id="res" hidden role="dialog" aria-label="Test report">
   <div class="rhead">
     <div><p class="eyebrow" id="rex"></p><h2 id="rverdict"></h2></div>
@@ -254,7 +428,7 @@ button:disabled{opacity:.45;cursor:default}
   <div class="fig" id="rfig"><svg id="rsvg" role="img" aria-label="Timing of each note"></svg></div>
   <div class="legend"><span><i style="background:var(--turqL)"></i>Right hand</span><span><i style="background:var(--lapisL)"></i>Left hand</span><span><i style="background:var(--garnetL)"></i>Missed or wrong</span><span>Above the line = late, below = early. Lower panel: loudness.</span></div>
   <ul class="tips" id="rtips"></ul>
-  <div class="rbtns"><button id="ragain">Again</button><button id="rslow">Slower</button><button id="rfast" class="primary">Faster</button><button id="rnext">Next exercise</button><button id="rclose">Close</button></div>
+  <div class="rbtns"><button id="ragain">Again</button><button id="rslow">Slower</button><button id="rfast" class="primary">Faster</button><button id="rguide">How to fix it</button><button id="rnext">Next exercise</button><button id="rclose">Close</button></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@2.2.1/build/opensheetmusicdisplay.min.js"></script>
@@ -323,6 +497,7 @@ let calib=null;
 function noteOn(m,vel,ts){
   ts=ts||now();held.add(m);synthOn(m,vel);keyEl[m]?.classList.add('down');
   if(calib){calib.hits.push(ts);return}
+  if(TR.on&&!$('#guide').hidden){trNote(m);return}
   if(E.on){engineNote(m,vel,ts);return}
   judge(m);
 }
@@ -334,7 +509,7 @@ addEventListener('keydown',e=>{
   if(e.target.matches('input,select,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;
   if(e.key==='PageDown'){e.preventDefault();turn(1);return}
   if(e.key==='PageUp'){e.preventDefault();turn(-1);return}
-  if(e.key==='Escape'){$('#res').hidden=true;$('#drawer').hidden=true;return}
+  if(e.key==='Escape'){$('#res').hidden=true;$('#drawer').hidden=true;$('#guide').hidden=true;return}
   const k=e.key.toLowerCase();
   if(k==='z'||k==='x'){oct=Math.max(24,Math.min(96,oct+(k==='z'?-12:12)));store.set('oct',oct);showOct();return}
   const i=MAP.indexOf(k);if(i<0||e.repeat)return;
@@ -434,26 +609,36 @@ function timelineOf(streams){
 const U={'8':6,'3':4,'16':3,'6':2};
 const bpmFor=u=>({6:84,4:66,3:60,2:46,12:72})[u]||72;
 const KO=o=>o>=3?3:4;
+const FG=(()=>{const A=[1,2,3,1,2,3,4,5],AL=[5,4,3,2,1,3,2,1],BL=[4,3,2,1,4,3,2,1],F=[1,2,3,4,1,2,3,4],FSL=[4,3,2,1,3,2,1,4],FLATL=[3,2,1,4,3,2,1,3],SHR=[3,4,1,2,3,1,2,3],MINL=[2,1,4,3,2,1,3,2];
+  const t={};[0,1,2,3,4].forEach(i=>t[i]=[A,AL]);t[5]=[A,BL];t[6]=[[2,3,4,1,2,3,1,2],FSL];t[7]=[[2,3,1,2,3,4,1,2],FLATL];t[8]=[SHR,FLATL];t[9]=[[3,1,2,3,4,1,2,3],FLATL];t[10]=[[4,1,2,3,1,2,3,4],FLATL];t[11]=[F,AL];
+  [12,13,18,19,20].forEach(i=>t[i]=[A,AL]);t[14]=[A,BL];t[15]=[SHR,FSL];t[16]=[SHR,FLATL];t[17]=[SHR,FLATL];t[21]=[F,AL];t[22]=[[4,1,2,3,1,2,3,4],MINL];t[23]=[[3,1,2,3,4,1,2,3],MINL];return t})();
+function fing(k,hand,j,n){const t=FG[k.id];if(!t)return;const a=hand==='R'?t[0]:t[1],d=((j%7)+7)%7;return hand==='R'?(j===n?a[7]:a[d]):(j===0?a[0]:(d===0?a[7]:a[d]))}
+const withF=(p,f)=>f?{...p,f}:p;
+const fingOK=(k,o)=>!(k.mode==='minor'&&o.minor==='melodic');
 function gScale(k,o,mode){
-  const oc=mode==='contrary'?Math.min(o.oct,3):o.oct,n=7*oc,u=U[o.rhythm],rb=KO(oc),lb=rb-1,R=[],L=[];
+  const oc=mode==='contrary'?Math.min(o.oct,3):o.oct,n=7*oc,u=U[o.rhythm],rb=KO(oc),lb=rb-1,R=[],L=[],F=fingOK(k,o)&&(mode==='parallel'||mode==='contrary');
   upDown(n).forEach((i,p)=>{const kd=kindOf(k,o,p<n?1:-1);let ri=i,li=i,rB=rb,lB=lb;
     if(mode==='contrary'){li=-i;rB=4;lB=4}if(mode==='thirds')ri=i+2;if(mode==='sixths'){ri=i+5;rB=lb}
-    R.push(ev([deg(k,ri,kd,rB)],u,'R'));L.push(ev([deg(k,li,kd,lB)],u,'L'))});
+    const lj=mode==='contrary'?li+n:li,rf=F?fing(k,'R',ri,n):0,lf=F?fing(k,'L',lj,n):0;
+    R.push(ev([withF(deg(k,ri,kd,rB),(p===0||rf===1||ri===n)?rf:0)],u,'R'));L.push(ev([withF(deg(k,li,kd,lB),(p===0||lf===1||lj===0)?lf:0)],u,'L'))});
   padBeat(R);padBeat(L);const kd=kindOf(k,o,-1);
-  R.push(ev([deg(k,mode==='thirds'?2:mode==='sixths'?5:0,kd,mode==='contrary'?4:mode==='sixths'?lb:rb)],12,'R'));
-  L.push(ev([deg(k,0,kd,mode==='contrary'?4:lb)],12,'L'));
+  R.push(ev([withF(deg(k,mode==='thirds'?2:mode==='sixths'?5:0,kd,mode==='contrary'?4:mode==='sixths'?lb:rb),F?fing(k,'R',0,n):0)],12,'R'));
+  L.push(ev([withF(deg(k,0,kd,mode==='contrary'?4:lb),F?fing(k,'L',mode==='contrary'?n:0,n):0)],12,'L'));
   return {streams:[S(1,1,R),S(2,5,L)],bpm:bpmFor(u)};
 }
+const chF=(m,h)=>BLACK.includes(m%12)?3:(h==='R'?([5,0].includes(m%12)?2:1):([4,11].includes(m%12)?2:1));
 function gChrom(k,o){
   const n=12*o.oct,u=U[o.rhythm],rb=KO(o.oct),t=12*(rb+1)+k.pc,R=[],L=[];
-  upDown(n).forEach((i,p)=>{const fl=p>=n;R.push(ev([chrom(t+i,fl)],u,'R'));L.push(ev([chrom(t-12+i,fl)],u,'L'))});
+  upDown(n).forEach((i,p)=>{const fl=p>=n,rm=t+i,lm=t-12+i,rf=chF(rm,'R'),lf=chF(lm,'L');
+    R.push(ev([withF(chrom(rm,fl),(p===0||rf===2)?rf:0)],u,'R'));L.push(ev([withF(chrom(lm,fl),(p===0||lf===2)?lf:0)],u,'L'))});
   padBeat(R);padBeat(L);R.push(ev([chrom(t,0)],12,'R'));L.push(ev([chrom(t-12,0)],12,'L'));
   return {streams:[S(1,1,R),S(2,5,L)],bpm:bpmFor(u)};
 }
 function gLadder(k,o){
-  const R=[],L=[];
+  const R=[],L=[],F=fingOK(k,o);
   for(const [u,oc] of [[6,2],[4,3],[3,2]]){const n=7*oc,rb=KO(oc),lb=rb-1;
-    upDown(n).forEach((i,p)=>{const kd=kindOf(k,o,p<n?1:-1);R.push(ev([deg(k,i,kd,rb)],u,'R'));L.push(ev([deg(k,i,kd,lb)],u,'L'))});
+    upDown(n).forEach((i,p)=>{const kd=kindOf(k,o,p<n?1:-1),rf=F?fing(k,'R',i,n):0,lf=F?fing(k,'L',i,n):0;
+      R.push(ev([withF(deg(k,i,kd,rb),(p===0||rf===1||i===n)?rf:0)],u,'R'));L.push(ev([withF(deg(k,i,kd,lb),(p===0||lf===1||i===0)?lf:0)],u,'L'))});
     padBeat(R);padBeat(L);R.push(ev([deg(k,0,kindOf(k,o,-1),rb)],12,'R'));L.push(ev([deg(k,0,kindOf(k,o,-1),lb)],12,'L'));padBar(R);padBar(L)}
   return {streams:[S(1,1,R),S(2,5,L)],bpm:56};
 }
@@ -475,9 +660,9 @@ function gHold(k){
   const kd=harmOf(k),RH=[[0,[1,2,3,4,3,2,1,2]],[4,[3,2,1,0,1,2,3,2]],[2,[0,1,3,4,3,1,0,1]],[[0,4],[1,2,3,2,1,2,3,2]]];
   const LH=[[4,[3,2,1,0,1,2,3,2]],[0,[1,2,3,4,3,2,1,2]],[2,[4,3,1,0,1,3,4,3]],[[0,4],[3,2,1,2,3,2,1,2]]];
   const r1=[],r2=[],l1=[],l2=[];
-  for(const u of [6,3])for(let b=0;b<4;b++){const [rh,rm]=RH[b],[lh,lm]=LH[b];
-    for(let r=0;r<(u===6?1:2);r++){rm.forEach(i=>r1.push(ev([deg(k,i,kd,4)],u,'R')));lm.forEach(i=>l1.push(ev([deg(k,i,kd,3)],u,'L')))}
-    r2.push(ev([].concat(rh).map(i=>deg(k,i,kd,4)),48,'R',{role:'hold'}));l2.push(ev([].concat(lh).map(i=>deg(k,i,kd,3)),48,'L',{role:'hold'}))}
+  for(const u of [6,3])for(let b=0;b<4;b++){const [rh,rm]=RH[b],[lh,lm]=LH[b],sf=u===6;
+    for(let r=0;r<(u===6?1:2);r++){rm.forEach(i=>r1.push(ev([withF(deg(k,i,kd,4),sf?i+1:0)],u,'R')));lm.forEach(i=>l1.push(ev([withF(deg(k,i,kd,3),sf?5-i:0)],u,'L')))}
+    r2.push(ev([].concat(rh).map(i=>withF(deg(k,i,kd,4),sf?i+1:0)),48,'R',{role:'hold'}));l2.push(ev([].concat(lh).map(i=>withF(deg(k,i,kd,3),sf?5-i:0)),48,'L',{role:'hold'}))}
   return {streams:[S(1,1,r1,'up'),S(1,2,r2,'down'),S(2,5,l1,'down'),S(2,6,l2,'up')],bpm:60};
 }
 function gPoly(k,o,p){
@@ -828,7 +1013,9 @@ function showReport(r){
   $('#rtips').innerHTML=tipsFor(r).map(x=>`<li>${esc(x)}</li>`).join('');
   const step=+$('#tstep').value;$('#rfast').hidden=!step;$('#rslow').hidden=!step;
   $('#rfast').textContent=`Faster (${r.bpm+step})`;$('#rslow').textContent=`Slower (${Math.max(20,r.bpm-step)})`;
-  $('#rfast').className=r.pass?'primary':'';$('#ragain').className=r.pass?'':'primary';
+  const runs=r.id?(store.get('hist',{})[r.id]?.runs||[]):[],two=!r.pass&&runs.length>=2&&runs.slice(-2).every(x=>x.bpm===r.bpm&&x.pass===false);
+  $('#rfast').className=r.pass?'primary':'';$('#ragain').className=r.pass||two?'':'primary';$('#rslow').className=two?'primary':'';
+  if(two&&step){$('#rslow').textContent=`Slower (${Math.max(20,r.bpm-2*step)})`;$('#rslow').dataset.d=2*step;$('#rtips').insertAdjacentHTML('afterbegin',`<li><b>Two misses at ${r.bpm} BPM.</b> Go ${2*step} BPM slower, get two clean runs, then climb again.</li>`)}else $('#rslow').dataset.d=step;
   $('#rnext').hidden=!(routine&&routine.idx<ROUTINES[routine.id].items.length-1);
   $('#res').hidden=false;requestAnimationFrame(()=>drawChart(r));
 }
@@ -848,12 +1035,12 @@ function drawChart(r){
 new ResizeObserver(()=>{if(!$('#res').hidden&&lastReport)drawChart(lastReport)}).observe($('#rfig'));
 function saveRun(r){
   if(!r.id)return;const h=store.get('hist',{}),e=h[r.id]||{name:r.name,runs:[]};
-  e.name=r.name;e.runs.push({d:Date.now(),bpm:r.bpm,score:r.score,acc:+r.acc.toFixed(3),sd:Math.round(r.spread)});e.runs=e.runs.slice(-15);
+  e.name=r.name;e.runs.push({d:Date.now(),bpm:r.bpm,score:r.score,acc:+r.acc.toFixed(3),sd:Math.round(r.spread),pass:r.pass});e.runs=e.runs.slice(-15);
   if(r.pass&&(!e.best||r.bpm>e.best))e.best=r.bpm;e.last=Date.now();h[r.id]=e;store.set('hist',h);renderProg();renderRoutine();
 }
 $('#ragain').onclick=()=>{$('#res').hidden=true;start()};
 $('#rfast').onclick=()=>{$('#bpm').value=lastReport.bpm+(+$('#tstep').value);store.set('bpm',+$('#bpm').value);$('#res').hidden=true;start()};
-$('#rslow').onclick=()=>{$('#bpm').value=Math.max(20,lastReport.bpm-(+$('#tstep').value));store.set('bpm',+$('#bpm').value);$('#res').hidden=true;start()};
+$('#rslow').onclick=()=>{$('#bpm').value=Math.max(20,lastReport.bpm-(+$('#rslow').dataset.d||+$('#tstep').value));store.set('bpm',+$('#bpm').value);$('#res').hidden=true;start()};
 $('#rclose').onclick=()=>$('#res').hidden=true;
 $('#lastres').onclick=()=>{if(lastReport)showReport(lastReport)};
 $('#rnext').onclick=()=>{$('#res').hidden=true;if(routine){routine.idx++;loadRoutineItem()}};
@@ -881,7 +1068,7 @@ function loadExercise(cat,item,k,o,startBpm){
   const best=store.get('hist',{})[id]?.best;
   $('#bpm').value=startBpm||best||g.bpm;
   $('#metro').checked=true;$('#drawer').hidden=true;
-  return loadXML(xml,title,{title,id,timeline:timelineOf(g.streams),cat,item}).then(()=>{if(mode!=='tempo')setMode('tempo');say(`${title}. Press Start or tap the soft pedal: 4-beat count-in.`,5000)});
+  return loadXML(xml,title,{title,id,timeline:timelineOf(g.streams),cat,item,bpm:g.bpm}).then(()=>{if(mode!=='tempo')setMode('tempo');say(`${title}. Press Start or tap the soft pedal: 4-beat count-in.`,5000)});
 }
 $('#xgo').onclick=()=>{audio();routine=null;loadExercise($('#xcat').value,$('#xitem').value,KEYS[+$('#xkey').value],readOpts());renderRoutine()};
 $('#rstart').onclick=()=>{audio();routine={id:$('#rsel').value,idx:0};loadRoutineItem()};
@@ -984,6 +1171,109 @@ function sampleXML(){
   return `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"><work><work-title>Ode to Joy (sample)</work-title></work><identification><creator type="composer">L. van Beethoven</creator></identification><part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list><part id="P1">${ms}</part></score-partwise>`;
 }
 $('#sample').onclick=()=>{audio();loadXML(sampleXML(),'Sample')};
+/* ---------- guide ---------- */
+const COACH={
+  parallel:{r:'Both staves play the same notes an octave apart. Numbers are fingers: only the thumbs (1) and the start are marked, the fingers in between follow in order. Group the notes by the beams: one beamed group per click.',h:'Prepare the thumb early: it travels under the palm while 2 and 3 play, so it is already over its key. Let the elbow drift sideways in the direction of travel; keep the wrist straight. On the way down, 3 or 4 crosses over the thumb with a small lift.'},
+  contrary:{r:'Both hands start on the same note and move apart (right hand up, left hand down), then come back together.',h:'A mirror image: both thumbs pass at the same moment, so it is easier to keep even than parallel motion. Let both elbows open outwards as the hands spread.'},
+  thirds:{r:'The right hand starts a third higher than the left (a tenth apart) and both move together.',h:'The thumbs now cross at different moments. Go slowly and watch the crossing of each hand separately; the other hand must not hiccup.'},
+  sixths:{r:'The right hand starts a sixth above the left hand, so the hands are close together.',h:'Keep the hands from colliding by playing the right hand slightly further in towards the black keys.'},
+  chromatic:{r:'Every key in a row, black and white: sharps going up, flats coming down. The marked 2s show the only special fingers.',h:'Finger 3 on every black key, thumb on white keys, and 2 on the pair of neighbouring white keys (right hand: F and C; left hand: E and B). Keep the hand close to the black keys so the thumb stays on the key.'},
+  ladder:{r:'Three sections: 8ths (2 per click), triplets (marked 3, three per click), then 16ths (4 per click).',h:'The beat never changes, only the fingers get busier. Count aloud: "1-and", "1-trip-let", "1-e-and-a". Keep the arm moving at an even speed.'},
+  dthirds:{r:'Two notes stacked on each beat: play them exactly together.',h:'Common fingerings pair 1-3, 2-4 and 3-5, then shift the thumb. Keep the top voice legato by sliding the upper fingers; the lower notes may detach slightly. Very slowly at first, and stop at any tension.'},
+  root:{r:'A broken chord climbing through the octaves, three notes per octave.',h:'Glide the forearm along the keyboard; don\'t stretch the fingers. The thumb moves under early and the wrist turns slightly towards the direction of travel. Right hand on white-key chords: 1 2 3 1 2 3 5; left hand: 5 4 2 1 4 2 1.'},
+  inv1:{r:'The same chord, starting on its third.',h:'Use finger 4 next to the widest gap (a fourth) and 3 where the gap is a third. The thumb passes after the widest gap.'},
+  inv2:{r:'The same chord, starting on its fifth.',h:'The widest stretch for the thumb crossing: lead with the elbow and keep the hand light.'},
+  dom7:{r:'Four notes per octave, evenly spaced.',h:'Fingers 1 2 3 4 in each octave, thumb under after 4. Any unevenness shows clearly here, so it is a good evenness test.'},
+  dim7:{r:'A chord of equal minor thirds; accidentals appear because it borrows the leading note.',h:'Fingers 1 2 3 4 (or start on 2 if the first note is a black key). Aim for one seamless sweep of the arm.'},
+  hold:{r:'Two voices in each staff. The whole notes (stems pointing away from the moving notes) are held for the whole bar; the others move. Finger numbers show the five-finger position.',h:'Let the holding finger rest gently on the bottom of its key: just don\'t let it up. The moving fingers play from the knuckle with the hand loose. If the hand tightens, stop, shake out and slow down.'},
+  poly32:{r:'The 3 over the right hand means triplets: three notes per click. The left hand has two.',h:'Say "nice cup a tea": "nice" both hands, "cup" right, "a" left, "tea" right. Practise the combined rhythm on a table first, then on the keys.'},
+  poly43:{r:'Right hand 16ths (four per click) against left hand triplets (three per click).',h:'Say "pass the gol-den but-ter": "pass" both, then right, left, right, left, right. Slowly, until the pattern is automatic.'},
+  legstac:{r:'Curved lines (slurs) mean legato; dots mean staccato. The hands swap roles halfway.',h:'Legato: don\'t release a key until the next one is down. Staccato: a light bounce from the wrist, letting go immediately. Practise each hand alone first, then together very slowly.'},
+  voicing:{r:'Three-note chords in the right hand; the top note is the melody.',h:'Lean the arm\'s weight towards the fifth-finger side: firm fingertip on the melody, the other fingers just touching their keys. First play the melody alone forte, then add the inner notes pianissimo.'},
+  fugue:{r:'Two voices, one per hand. The tune in bar 1 (the subject) comes back in the left hand, then in other places.',h:'Each hand shapes its own line. Wherever the subject enters, play it a little louder and let the other voice recede. Practise each voice alone while singing the other.'},
+  octscale:{r:'Two notes an octave apart in each hand.',h:'Lock the hand in the octave shape and play from the wrist and forearm with a small bounce. Use 1-4 on black keys if your hand allows. Stay loose; rest at every pause.'},
+  brokenoct:{r:'Each octave split into low then high notes.',h:'Rotate the forearm like turning a doorknob between thumb and fifth finger. Fingers stay passive.'},
+  stride:{r:'Left hand: bass note low, then a chord in the middle. Right hand: chords that jump up and back.',h:'Look at where you\'re going, not where you are. Jump early, move fast in a low arc, shape the chord in the air, land gently and play.'},
+  handoff:{r:'The arpeggio starts in the left hand (bass staff) and continues in the right hand (treble staff), then comes back.',h:'The next hand must already be over its first note before the other finishes. Aim for no gap or bump at the join on the timing chart.'},
+  battery:{r:'One line of 16ths. The note on each beat, and every second note after it, is the left hand; the notes in between are the right hand.',h:'Hands close together, the right hand slightly behind and above the left. Small light movements from the wrist, like drumming; fingers stay on the key surface.'},
+  crossing:{r:'The notes with stems down in the treble staff are played by the left hand crossing over.',h:'The left hand goes over the right, not under: lift it higher and move from the shoulder. The right hand stays low and keeps playing evenly. Look at the target note before you jump.'},
+  repeated:{r:'The numbers 4 3 2 1 over each group mean changing fingers on the same key.',h:'Pull each finger towards you slightly as it leaves the key, with a shallow stroke. The key only needs to rise halfway to repeat.'}
+};
+function openGuide(tab){$('#guide').hidden=false;$('#drawer').hidden=true;$('#res').hidden=true;showTab(tab||'ex')}
+function showTab(t){$$('[data-g]').forEach(b=>b.setAttribute('aria-selected',b.dataset.g===t));$$('[data-gp]').forEach(s=>s.hidden=s.dataset.gp!==t);
+  if(t==='ex')renderExGuide();if(t==='read')renderExamples();if(t!=='read')trStop();$('#guide').scrollTop=0}
+$$('[data-g]').forEach(b=>b.onclick=()=>showTab(b.dataset.g));
+$('#gopen').onclick=()=>openGuide(cur?'ex':'read');
+$('#gclose').onclick=()=>{$('#guide').hidden=true;trStop()};
+$('#rguide').onclick=()=>openGuide('ex');
+function renderExGuide(){
+  const g=$('#gex');
+  if(!cur){g.innerHTML='<p class="lead">Load a technique exercise (Technique button) and this page will explain how to read it, how to move your hands, and give you a step-by-step plan. Meanwhile, start with <b>Reading notation</b> or <b>Tempo practice</b>.</p>';return}
+  const it=EX[cur.cat].items[cur.item],c=COACH[cur.item]||{},hs=new Set(cur.timeline.map(n=>n.hand)),hasR=hs.has('R')||hs.has('B'),hasL=hs.has('L')||hs.has('B'),t=cur.bpm;
+  const steps=[['Read it first (30 seconds)','Find the key, the first note of each hand, the pattern, and where the thumb passes. Don\'t play yet.',null]];
+  if(hasR&&hasL){steps.push(['Right hand alone, no clock','Wait for me mode: the app plays the left hand and waits for your right hand.',['right','wait',0]]);steps.push(['Left hand alone, no clock','Wait for me mode: the app plays the right hand.',['left','wait',0]])}
+  steps.push(['Hands together, no clock','Wait for me mode, both hands. Repeat until you play it without stopping to think.',['both','wait',0]]);
+  steps.push([`Slow test at ${Math.round(t*.6)} BPM`,'Test at tempo at about 60% of the suggested tempo. It should feel easy.',['both','tempo',.6]]);
+  steps.push(['Climb the ladder','Two clean runs, then Faster (+4). Two misses at one tempo, then go 8 slower and climb again.',null]);
+  g.innerHTML=`<h3>${esc(it.label)} <span class="mn">· ${esc(cur.title.split(' · ')[1]||'')}</span></h3><p>${it.d}</p>
+   <div class="two"><div class="card"><h4>How to read it</h4><p>${esc(c.r||'')}</p></div><div class="card"><h4>How to move your hands</h4><p>${esc(c.h||'')}</p></div></div>
+   <h3>Practice plan</h3><ol class="steps">${steps.map(([a,b,s],i)=>`<li><span><b>${esc(a)}</b>${esc(b)}</span>${s?`<button class="btn${i===1?' primary':''}" data-plan="${s.join(',')}">Set up</button>`:''}</li>`).join('')}</ol>
+   <p class="mn">Suggested starting tempo for this exercise: ${t} BPM. Your best clean tempo: ${store.get('hist',{})[cur.id]?.best||'none yet'}.</p>`;
+  $$('[data-plan]').forEach(b=>b.onclick=()=>{const [h,m,f]=b.dataset.plan.split(',');$('#hands').value=h;store.set('hands',h);if(+f){$('#bpm').value=Math.round(cur.bpm*f);store.set('bpm',+$('#bpm').value)}$('#guide').hidden=true;setMode(m);say(m==='wait'?'Play the rose keys; the music waits for you.':'Press Start or tap the soft pedal.',4000)});
+}
+/* notation examples */
+const nx=(p,d,type,x={})=>{
+  if(p==='r')return `${x.w?`<direction placement="above"><direction-type><words>${x.w}</words></direction-type></direction>`:''}<note><rest/><duration>${d}</duration><voice>${x.v||1}</voice><type>${type}</type>${x.dot?'<dot/>':''}</note>`;
+  const m=p.match(/^([A-G])([#bn]?)(\d)$/),alt=m[2]==='#'?1:m[2]==='b'?-1:0;let no='';
+  if(x.tie)no+=`<tied type="${x.tie}"/>`;if(x.slur)no+=`<slur type="${x.slur}"/>`;if(x.tup)no+=`<tuplet type="${x.tup}"/>`;if(x.st)no+='<articulations><staccato/></articulations>';if(x.f)no+=`<technical><fingering>${x.f}</fingering></technical>`;
+  return `<note>${x.chord?'<chord/>':''}<pitch><step>${m[1]}</step>${alt?`<alter>${alt}</alter>`:''}<octave>${m[3]}</octave></pitch><duration>${d}</duration>${x.tie?`<tie type="${x.tie}"/>`:''}<voice>${x.v||1}</voice><type>${type}</type>${x.dot?'<dot/>':''}${m[2]==='n'?'<accidental>natural</accidental>':''}${x.tm?'<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>':''}${x.stem?`<stem>${x.stem}</stem>`:''}${no?`<notations>${no}</notations>`:''}${x.ly?`<lyric><text>${esc(x.ly)}</text></lyric>`:''}</note>`};
+const mini=(clef,ms,fifths=0,time=true)=>`<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"><part-list><score-part id="P1"><part-name></part-name></score-part></part-list><part id="P1">${ms.map((m,i)=>`<measure number="${i+1}">${i?'':`<attributes><divisions>12</divisions><key><fifths>${fifths}</fifths></key><time print-object="${time?'yes':'no'}"><beats>4</beats><beat-type>4</beat-type></time><clef><sign>${clef}</sign><line>${clef==='G'?2:4}</line></clef></attributes>`}${m}</measure>`).join('')}</part></score-partwise>`;
+const qn=(arr,clef)=>arr.map(([p,l])=>nx(p,12,'quarter',{ly:l})).join('');
+const EXS={
+  treble:()=>mini('G',[qn([['C4','C (middle)'],['D4','D'],['E4','E'],['F4','F']]),qn([['G4','G'],['A4','A'],['B4','B'],['C5','C']]),qn([['D5','D'],['E5','E'],['F5','F'],['G5','G']])],0,false),
+  bass:()=>mini('F',[qn([['E2','E'],['F2','F'],['G2','G'],['A2','A']]),qn([['B2','B'],['C3','C'],['D3','D'],['E3','E']]),qn([['F3','F'],['G3','G'],['A3','A'],['C4','C (middle)']])],0,false),
+  values:()=>mini('G',[nx('C5',48,'whole',{ly:'4 beats'}),nx('C5',24,'half',{ly:'2'})+nx('C5',24,'half',{ly:'2'}),qn([['C5','1'],['C5','1'],['C5','1'],['C5','1']]),[...Array(8)].map((_,i)=>nx('C5',6,'eighth',{ly:i%2?'and':String(i/2+1)})).join(''),[...Array(16)].map((_,i)=>nx('C5',3,'16th',{ly:['1','e','and','a'][i%4]===('1')?String(i/4+1):['1','e','&','a'][i%4]})).join(''),[...Array(12)].map((_,i)=>nx('C5',4,'eighth',{tm:1,tup:i%3===0?'start':i%3===2?'stop':'',ly:i%3===0?String(i/3+1):i%3===1?'trip':'let'})).join(''),nx('C5',18,'quarter',{dot:1,ly:'1½'})+nx('C5',6,'eighth',{ly:'½'})+nx('C5',24,'half',{ly:'2'})]),
+  rests:()=>mini('G',[nx('r',48,'whole',{w:'whole rest: 4'}),nx('r',24,'half',{w:'half: 2'})+nx('r',12,'quarter',{w:'quarter: 1'})+nx('r',6,'eighth',{w:'8th: ½'})+nx('r',3,'16th',{w:'16th: ¼'})+nx('r',3,'16th')],0,true),
+  keys:()=>mini('G',[qn([['D4','D'],['E4','E'],['F4','F'],['G4','G']]),qn([['A4','A'],['Bb4','B♭ (key)'],['C#5','C♯'],['D5','D']]),qn([['Bn4','B♮'],['A4','A'],['G4','G'],['F4','F']])],-1,true),
+  marks:()=>mini('G',[nx('C5',12,'quarter',{slur:'start',ly:'legato',f:1})+nx('D5',12,'quarter',{f:2})+nx('E5',12,'quarter',{f:3})+nx('F5',12,'quarter',{slur:'stop',f:4}),[...Array(4)].map((_,i)=>nx('G5',12,'quarter',{st:1,ly:i?'':'staccato'})).join(''),nx('G5',24,'half',{tie:'start',ly:'tie: hold'})+nx('G5',12,'quarter',{tie:'stop'})+nx('r',12,'quarter'),nx('E5',12,'quarter',{stem:'up',ly:'two voices'})+nx('F5',12,'quarter',{stem:'up'})+nx('G5',12,'quarter',{stem:'up'})+nx('F5',12,'quarter',{stem:'up'})+'<backup><duration>48</duration></backup>'+nx('C5',48,'whole',{v:2,stem:'down'})])
+};
+let exDone=false;const miniOsmd=[];
+async function renderXMLInto(el,xml,zoom){const o=new opensheetmusicdisplay.OpenSheetMusicDisplay(el,{autoResize:false,backend:'svg',drawTitle:false,drawPartNames:false,drawMeasureNumbers:false,autoBeam:true});await o.load(xml);o.zoom=zoom||1;o.render();return o}
+async function renderExamples(){
+  drawKbd();if(exDone||!window.opensheetmusicdisplay)return;exDone=true;
+  for(const el of $$('[data-x]')){try{miniOsmd.push(await renderXMLInto(el,EXS[el.dataset.x](),.85))}catch(e){el.textContent='Example could not be drawn.';console.error(e)}}
+}
+function drawKbd(){
+  const s=$('#gkbd');if(s.dataset.done)return;s.dataset.done=1;const ww=640/15;let g='';
+  for(let i=0;i<15;i++){const c=i%7===0;g+=`<rect x="${i*ww}" y="0" width="${ww}" height="110" fill="${i===7?'#FFE3F1':'#fff'}" stroke="#0F2147" stroke-width="1"/>`;if(c)g+=`<text x="${i*ww+ww/2}" y="100" font-size="13" text-anchor="middle" fill="#0F2147" font-family="Georgia" font-style="italic">C${3+i/7}</text>`}
+  for(let i=0;i<14;i++){if([0,1,3,4,5].includes(i%7))g+=`<rect x="${(i+1)*ww-ww*.3}" y="0" width="${ww*.6}" height="68" fill="#1C0619"/>`}
+  s.innerHTML=g;
+}
+/* tempo calculator */
+function calc(){const b=+$('#cbpm').value||60,u=+$('#cunit').value,nps=b/60*u;$('#cout').textContent=`${nps.toFixed(1)} notes per second · ${Math.round(1000/nps)} ms apart`}
+$('#cbpm').oninput=calc;$('#cunit').onchange=calc;calc();
+/* note-reading trainer */
+const TR={on:false,cur:null,ok:0,bad:0,times:[],streak:0,osmd:null,t0:0};
+const TRR={G:{staff:[64,77],ledger:[57,84]},F:{staff:[43,57],ledger:[36,64]}};
+async function trNext(){
+  const cm=$('#trclef').value,clef=cm==='both'?(Math.random()<.5?'G':'F'):cm,[lo,hi]=TRR[clef][$('#trset').value],acc=$('#tracc').checked;
+  let m;do{m=lo+Math.floor(Math.random()*(hi-lo+1))}while((!acc&&BLACK.includes(m%12))||(TR.cur&&m===TR.cur.m));
+  const p=BLACK.includes(m%12)?chrom(m,Math.random()<.5):chrom(m,false),name=`${p.s}${p.a>0?'♯':p.a<0?'♭':''}${p.o}`;
+  TR.cur={m,name};const pn=`${p.s}${p.a>0?'#':p.a<0?'b':''}${p.o}`;
+  const el=$('#trnote');el.innerHTML='';try{TR.osmd=await renderXMLInto(el,mini(clef,[nx(pn,48,'whole')],0,false),1.6)}catch(e){el.textContent=name}
+  TR.t0=now();
+}
+function trNote(m){
+  if(!TR.cur)return;
+  if(m===TR.cur.m){const dt=now()-TR.t0;TR.times.push(dt);TR.ok++;TR.streak++;$('#trfb').className='ok';$('#trfb').textContent=`${TR.cur.name} · ${(dt/1000).toFixed(1)} s`;flash(m,'got',300);trStats();setTimeout(trNext,450)}
+  else{TR.bad++;TR.streak=0;$('#trfb').className='no';$('#trfb').textContent=`That was ${nn(m)}. Try again.`;flash(m,'bad');trStats()}
+}
+function trStats(){$('#trok').textContent=TR.ok;$('#trbad').textContent=TR.bad;$('#trstreak').textContent=TR.streak;const r=TR.times.slice(-20);$('#trtime').textContent=r.length?(mean(r)/1000).toFixed(1)+' s':'–'}
+function trStop(){TR.on=false;$('#trgo').textContent='Start'}
+$('#trgo').onclick=()=>{audio();if(TR.on){trStop();return}TR.on=true;TR.ok=TR.bad=TR.streak=0;TR.times=[];trStats();$('#trgo').textContent='Stop';$('#trfb').className='';$('#trfb').textContent='Play the note on your piano.';trNext()};
+$('#trshow').onclick=()=>{if(!TR.cur)return;$('#trfb').className='';$('#trfb').textContent=`It's ${TR.cur.name}`;flash(TR.cur.m,'target',1200);TR.streak=0;trStats()};
+['#trclef','#trset','#tracc'].forEach(s=>$(s).onchange=()=>{if(TR.on)trNext()});
+
 window.__pr={EX,KEYS,ROUTINES,loadExercise,get E(){return E},get cur(){return cur},noteOn,noteOff,report:()=>lastReport};
 
 view('empty');
