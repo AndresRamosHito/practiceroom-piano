@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark-academia">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1C0619">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<title>Practice Room Piano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a quiet practice room at night, a working instrument first.
+   IDEA: a music stand under lamplight: the score on a hinoki-light sheet, the keyboard below.
+   PICTURE: the live score and an 88-key keyboard that lights the notes to play.
+   COLOUR and TYPE: Orchidarc Dark Academia: aubergine ground, gold rules, rose targets, turquoise hits, garnet misses. Cambria display, Assistant body.
+   LAYOUT: header and controls on top, score fills the middle, keyboard docked at the bottom. */
+:root{color-scheme:dark;--ground:#1C0619;--raised:#2B0D27;--lifted:#3D1638;--text:#fff;--muted:#D9C8D6;--sheet:#FAF6EE;--ink:#0F2147;--gold:#E2B54A;--rose:#FF5FAE;--roseF:#E4007C;--turq:#5FE0D2;--turqF:#0B7A70;--garnet:#FF6B78;--garnetF:#C4182E;--wood:#E8D3AE}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+html{-webkit-text-size-adjust:100%}body{-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--ground);color:var(--text);font:17px/1.5 Assistant,"Segoe UI",sans-serif;overflow-x:clip}
+body::before{content:"";position:fixed;inset:14px;border:2px solid var(--gold);outline:1px solid var(--gold);outline-offset:-10px;pointer-events:none;z-index:50;opacity:.85}
+.app{display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;height:100dvh;padding:30px 34px 30px}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between;padding-bottom:12px}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:0}
+h1{font:700 clamp(26px,3.4vw,38px)/1.05 Cambria,Georgia,"Times New Roman",serif;margin:4px 0 0;text-wrap:balance}
+h1 em{color:var(--rose)}
+.midi{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;background:var(--raised);color:var(--muted);font-size:15px}
+.pill i{width:9px;height:9px;border-radius:50%;background:#7b6577}
+.pill.on i{background:var(--turq);box-shadow:0 0 8px var(--turq)}
+.pill.warn i{background:var(--garnet)}
+button,select,input,.file{font:600 15px Assistant,sans-serif;min-height:40px;border-radius:99px;border:1px solid #6a4a64;background:var(--raised);color:var(--text);padding:0 16px;cursor:pointer}
+input[type=number]{width:76px;padding:0 10px;font-size:16px;cursor:text}
+input[type=range]{padding:0;border:0;background:none;accent-color:var(--rose);width:90px}
+button:hover,.file:hover,select:hover{border-color:var(--gold)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.primary{background:var(--roseF);border-color:var(--roseF)}
+.file{display:inline-flex;align-items:center}
+.file input{display:none}
+.bar{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:10px 0 12px;border-top:1px solid rgba(226,181,74,.35)}
+.grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.grp label{font-size:14px;color:var(--muted);display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#hands{max-width:200px}
+.seg{display:inline-flex;border:1px solid #6a4a64;border-radius:99px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.seg button[aria-pressed=true]{background:var(--lifted);color:var(--rose)}
+.sep{width:1px;height:28px;background:rgba(226,181,74,.35)}
+.stats{margin-left:auto;display:flex;gap:16px;font-size:15px;color:var(--muted);white-space:nowrap}
+.stats b{font:700 20px Cambria,Georgia,serif;color:var(--text)}
+.stats .ok b{color:var(--turq)}.stats .bad b{color:var(--garnet)}
+.stand{position:relative;overflow-x:hidden;background:var(--sheet);color:var(--ink);border-radius:18px;border-top:6px solid var(--wood);overflow-y:auto;min-height:220px}
+#osmd{padding:8px 4px}#osmd svg{max-width:100%;height:auto}
+#pages{display:grid;gap:14px;padding:14px;justify-items:center}
+#pages img,#pages canvas{max-width:100%;height:auto;box-shadow:0 2px 10px rgba(15,33,71,.18);background:#fff}
+.empty{padding:clamp(20px,4vw,48px);max-width:720px}
+.empty h2{font:700 26px/1.15 Cambria,Georgia,serif;margin:0 0 8px}
+.empty p{margin:0 0 10px;color:#4A4E68}
+.empty .lbl{font:italic 15px Georgia,serif;color:#4A4E68}
+.drop{outline:3px dashed var(--roseF);outline-offset:-10px}
+.msg{position:sticky;top:8px;margin:8px auto 0;width:max-content;max-width:90%;background:var(--ink);color:#fff;padding:6px 16px;border-radius:99px;font-size:15px;z-index:3;display:none}
+.msg.show{display:block}
+.pager{position:sticky;bottom:10px;display:none;justify-content:flex-end;gap:8px;padding:0 12px 4px;pointer-events:none}
+.pager button{pointer-events:auto;background:var(--ink);border-color:var(--ink)}
+.kbwrap{margin-top:12px;overflow-x:auto;border-radius:10px;background:#0d030c;padding:8px 8px 6px;border-top:2px solid var(--gold)}
+#kb{position:relative;height:clamp(110px,18vh,160px);min-width:980px;user-select:none;touch-action:none}
+.k{position:absolute;top:0;cursor:pointer}
+.w{width:calc(100%/52);height:100%;background:linear-gradient(#fff,#f1ebe0);border:1px solid #1C0619;border-radius:0 0 5px 5px;display:flex;align-items:end;justify-content:center}
+.w span{font:italic 11px Georgia,serif;color:#5B4A58;padding-bottom:4px;pointer-events:none}
+.b{width:calc(100%/52*.62);height:62%;background:linear-gradient(#3a2a37,#0b0309);border-radius:0 0 4px 4px;z-index:2;margin-left:calc(100%/52*-.31)}
+.k.target{background:var(--roseF)}.w.target span{color:#fff}
+.k.auto{background:#7B3FC4}
+.k.down{background:var(--turqF)}
+.k.got{background:var(--turq)}
+.k.bad{background:var(--garnetF)}
+.foot{font-size:13px;color:var(--muted);margin:6px 0 0;display:flex;flex-wrap:wrap;gap:4px 16px}
+/* phone: score first, keyboard reduced to a strip */
+.short,.focusbtn{display:none}
+.next{font:700 18px Cambria,Georgia,serif;color:var(--rose);white-space:nowrap}
+@media(max-width:760px),(max-height:560px){
+  .app{height:100dvh;padding:14px 16px 12px;display:flex;flex-direction:column}
+  .stand{flex:1 1 0}
+  .pager button{min-height:32px;opacity:.7}
+  body::before{inset:5px;outline-offset:-6px}
+  header{display:none}.short{display:inline-flex}
+  .bar{flex-wrap:nowrap;overflow-x:auto;padding:4px 2px 8px;gap:6px;scrollbar-width:none;border-top:0}
+  .bar>*{flex:none}.bar::-webkit-scrollbar{display:none}
+  button,select,.file{min-height:36px;padding:0 12px;font-size:14px}
+  .stats{margin-left:0;gap:10px;font-size:13px}.stats b{font-size:17px}.sep{display:none}
+  .stand{min-height:0;border-radius:12px;border-top-width:4px}
+  .kbwrap{margin-top:6px;padding:3px;overflow:hidden;border-top-width:1px}
+  #kb{min-width:0;height:30px;pointer-events:none}
+  .w{border-width:0 1px 0 0;border-color:#c9bba8;border-radius:0}.w span{display:none}
+  .b{height:58%;border-radius:0}
+  .k.target{background:var(--roseF);box-shadow:0 0 6px var(--roseF)}
+  .foot{display:none}
+  .app.focus .bar{display:none}.app.focus .focusbtn{display:block}
+}
+.focusbtn{position:fixed;right:22px;top:18px;z-index:60;opacity:.75}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <p class="eyebrow">Practice room</p>
+      <h1>Play along with your <em>sheet music</em></h1>
+    </div>
+    <div class="midi">
+      <span class="pill" id="mstat"><i></i><span id="mtxt">MIDI not connected</span></span>
+      <select id="msel" aria-label="MIDI input" hidden></select>
+      <button class="primary" id="mconn">Connect MIDI</button>
+    </div>
+  </header>
+
+  <div class="bar">
+    <button class="short pill" id="mconn2" aria-label="Connect MIDI"><i></i><span>MIDI</span></button>
+    <label class="file">Open score<input type="file" id="file" accept=".musicxml,.xml,.mxl,.pdf,.png,.jpg,.jpeg,.webp,.gif"></label>
+    <button id="sample">Sample</button>
+    <span class="sep"></span>
+    <div class="seg" role="group" aria-label="Mode">
+      <button data-mode="wait" aria-pressed="true">Wait for me</button>
+      <button data-mode="tempo" aria-pressed="false">At tempo</button>
+      <button data-mode="listen" aria-pressed="false">Listen</button>
+    </div>
+    <div class="grp"><label for="hands">Hands</label>
+      <select id="hands"><option value="both">Both</option><option value="right">Right (other plays)</option><option value="left">Left (other plays)</option></select></div>
+    <div class="grp"><label for="bpm">BPM</label><input type="number" id="bpm" min="20" max="240" value="90"></div>
+    <div class="grp"><label><input type="checkbox" id="metro"> Click</label></div>
+    <div class="grp"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="100" value="70"></div>
+    <span class="sep"></span>
+    <div class="grp">
+      <button id="restart">Restart</button><button id="back">Back</button><button id="go" class="primary">Start</button><button id="step">Step</button>
+    </div>
+    <div class="grp"><button id="zout" aria-label="Smaller">A−</button><button id="zin" aria-label="Bigger">A+</button><button id="focus">Focus</button><button id="fs">Full screen</button></div>
+    <div class="stats" aria-live="polite"><span class="next" id="next"></span><span class="ok"><b id="sok">0</b> correct</span><span class="bad"><b id="sbad">0</b> missed</span><span><b id="sprog">–</b></span></div>
+  </div>
+
+  <div class="stand" id="stand">
+    <div class="msg" id="msg"></div>
+    <div class="empty" id="empty">
+      <h2>Open a score, or try the sample</h2>
+      <p><b>MusicXML</b> (.musicxml, .xml, .mxl) gets the full play-along: a cursor follows you, the keys to press light up in rose, and in <i>Wait for me</i> the music only moves on when you hit the right notes.</p>
+      <p><b>PDF or images</b> open as pages to read from while you play. Turn pages with the buttons, PageUp/PageDown, or your soft (left) pedal.</p>
+      <p class="lbl">Tip: export MusicXML from MuseScore, or convert a PDF with an OMR tool such as Audiveris or PlayScore. You can also drop a file here.</p>
+    </div>
+    <div id="osmd" hidden></div>
+    <div id="pages" hidden></div>
+    <div class="pager" id="pager"><button id="pprev">Previous page</button><button id="pnext">Next page</button></div>
+  </div>
+
+  <button class="focusbtn" id="unfocus">Controls</button>
+  <div class="dock">
+    <div class="kbwrap" id="kbwrap"><div id="kb"></div></div>
+    <p class="foot"><span class="desk">No MIDI? Play with the computer keys A W S E D F T G Y H U J K (Z / X shift octave) or click the keys.</span><span class="desk" id="okt">Octave: C4</span></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/opensheetmusicdisplay@2.2.1/build/opensheetmusicdisplay.min.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const store={get(k,d){try{const v=localStorage.getItem('pr_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('pr_'+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- audio ---------- */
+let ac=null,master=null;const voices=new Map(),held=new Set(),sustained=new Set();let sustain=false;
+function audio(){
+  if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();const comp=ac.createDynamicsCompressor();master=ac.createGain();master.gain.value=$('#vol').value/100;master.connect(comp);comp.connect(ac.destination)}
+  if(ac.state==='suspended')ac.resume().catch(()=>{});
+  return ac;
+}
+function synthOn(m,vel){
+  audio();killVoice(m,.01);
+  const f=440*2**((m-69)/12),t=ac.currentTime,v=((vel||90)/127)**1.6*.45,dec=Math.max(1.4,6.5-(m-21)/14);
+  const g=ac.createGain(),flt=ac.createBiquadFilter(),o1=ac.createOscillator(),o2=ac.createOscillator(),g2=ac.createGain();
+  flt.type='lowpass';flt.frequency.setValueAtTime(Math.min(f*7+vel*30,15000),t);flt.frequency.exponentialRampToValueAtTime(Math.max(f*1.8,280),t+1.6);
+  o1.type='triangle';o2.type='sine';o1.frequency.value=f;o2.frequency.value=f*2;o2.detune.value=4;g2.gain.value=.25;
+  o1.connect(flt);o2.connect(g2);g2.connect(flt);flt.connect(g);g.connect(master);
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.006);g.gain.exponentialRampToValueAtTime(v*.35,t+.3);g.gain.exponentialRampToValueAtTime(.0001,t+dec);
+  o1.start(t);o2.start(t);o1.stop(t+dec+.05);o2.stop(t+dec+.05);
+  voices.set(m,{g,o:[o1,o2]});sustained.delete(m);
+}
+function killVoice(m,tc){
+  const vc=voices.get(m);if(!vc)return;voices.delete(m);
+  const t=ac.currentTime;vc.g.gain.cancelScheduledValues(t);vc.g.gain.setValueAtTime(vc.g.gain.value,t);vc.g.gain.setTargetAtTime(0,t,tc);
+  vc.o.forEach(o=>{try{o.stop(t+tc*8)}catch(e){}});
+}
+function synthOff(m){if(sustain){sustained.add(m);return}killVoice(m,.09)}
+function setSustain(on){sustain=on;if(!on){sustained.forEach(m=>{if(!held.has(m))killVoice(m,.12)});sustained.clear()}}
+function click(at,accent){
+  audio();const t=ac.currentTime+Math.max(0,at),o=ac.createOscillator(),g=ac.createGain();
+  o.frequency.value=accent?1600:1100;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.35,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.06);
+  o.connect(g);g.connect(master);o.start(t);o.stop(t+.08);
+}
+$('#vol').value=store.get('vol',70);
+$('#vol').oninput=e=>{store.set('vol',+e.target.value);if(master)master.gain.value=e.target.value/100};
+
+/* ---------- keyboard ---------- */
+const BLACK=[1,3,6,8,10],keyEl={};let wi=0,kh='';
+for(let m=21;m<=108;m++){
+  const pc=m%12;
+  if(BLACK.includes(pc))kh+=`<div class="k b" data-m="${m}" style="left:calc(${wi}*100%/52)"></div>`;
+  else{kh+=`<div class="k w" data-m="${m}" style="left:calc(${wi}*100%/52)">${pc===0?`<span>C${m/12-1}</span>`:''}</div>`;wi++}
+}
+$('#kb').innerHTML=kh;$$('.k').forEach(el=>keyEl[el.dataset.m]=el);
+const flash=(m,c,ms=220)=>{const el=keyEl[m];if(!el)return;el.classList.add(c);setTimeout(()=>el.classList.remove(c),ms)};
+const ptr=new Map();
+const keyAt=e=>document.elementFromPoint(e.clientX,e.clientY)?.closest('#kb .k');
+$('#kb').addEventListener('pointerdown',e=>{const k=e.target.closest('.k');if(!k)return;e.preventDefault();try{$('#kb').setPointerCapture(e.pointerId)}catch(_){}const m=+k.dataset.m;ptr.set(e.pointerId,m);noteOn(m,95)});
+$('#kb').addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;const k=keyAt(e);const m=k?+k.dataset.m:null,o=ptr.get(e.pointerId);if(m!=null&&m!==o){noteOff(o);ptr.set(e.pointerId,m);noteOn(m,85)}});
+const ptrEnd=e=>{if(ptr.has(e.pointerId)){noteOff(ptr.get(e.pointerId));ptr.delete(e.pointerId)}};
+['pointerup','pointercancel'].forEach(t=>$('#kb').addEventListener(t,ptrEnd));
+$('#kb').addEventListener('contextmenu',e=>e.preventDefault());
+requestAnimationFrame(()=>{const w=$('#kbwrap'),c=keyEl[60];w.scrollLeft=c.offsetLeft-w.clientWidth/2});
+
+function noteOn(m,vel){held.add(m);synthOn(m,vel);keyEl[m]?.classList.add('down');judge(m)}
+function noteOff(m){held.delete(m);synthOff(m);keyEl[m]?.classList.remove('down')}
+
+const MAP='awsedftgyhujkolp;';let oct=store.get('oct',60);const typed=new Set();
+const showOct=()=>$('#okt').textContent='Octave: C'+(oct/12-1);showOct();
+addEventListener('keydown',e=>{
+  if(e.target.matches('input,select,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='PageDown'){e.preventDefault();turn(1);return}
+  if(e.key==='PageUp'){e.preventDefault();turn(-1);return}
+  const k=e.key.toLowerCase();
+  if(k==='z'||k==='x'){oct=Math.max(24,Math.min(96,oct+(k==='z'?-12:12)));store.set('oct',oct);showOct();return}
+  const i=MAP.indexOf(k);if(i<0||e.repeat)return;
+  const m=oct+i;typed.add(k+':'+m);noteOn(m,90);
+});
+addEventListener('keyup',e=>{const k=e.key.toLowerCase();for(const t of [...typed])if(t.startsWith(k+':')){typed.delete(t);noteOff(+t.split(':')[1])}});
+
+/* ---------- MIDI ---------- */
+let midi=null;
+function setStat(cls,txt){$('#mstat').className='pill '+cls;$('#mtxt').textContent=txt;$('#mconn2').className='short pill '+cls;$('#mconn2').title=txt;if(cls==='warn'&&(innerHeight<560||innerWidth<760))say(txt,5000)}
+async function connectMidi(){
+  audio();
+  if(!navigator.requestMIDIAccess){setStat('warn',/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent)&&'ontouchend' in document?'iPhone and iPad browsers cannot read MIDI. Use an Android phone, a tablet with Chrome, or a computer.':'This browser has no Web MIDI. Use Chrome or Edge.');return}
+  try{midi=await navigator.requestMIDIAccess();midi.onstatechange=listInputs;listInputs()}
+  catch(e){setStat('warn','MIDI was blocked here. Allow it, or open this page in its own tab.')}
+}
+function listInputs(){
+  const ins=[...midi.inputs.values()],sel=$('#msel'),prev=sel.value||store.get('midiIn','all');
+  sel.hidden=!ins.length;$('#mconn').textContent=ins.length?'Rescan':'Connect MIDI';
+  sel.innerHTML=`<option value="all">All inputs</option>`+ins.map(i=>`<option value="${esc(i.id)}">${esc(i.name)}</option>`).join('');
+  if([...sel.options].some(o=>o.value===prev))sel.value=prev;
+  ins.forEach(i=>i.onmidimessage=onMsg);
+  setStat(ins.length?'on':'warn',ins.length?(ins.length===1?ins[0].name:ins.length+' devices')+' connected':'No MIDI device found. Plug it in.');
+}
+$('#msel').onchange=e=>store.set('midiIn',e.target.value);
+function onMsg(e){
+  const id=$('#msel').value;if(id!=='all'&&e.target.id!==id)return;
+  const [s,d1,d2]=e.data,c=s&0xf0;
+  if(c===0x90&&d2>0)noteOn(d1,d2);
+  else if(c===0x80||(c===0x90&&d2===0))noteOff(d1);
+  else if(c===0xb0&&d1===64)setSustain(d2>=64);
+  else if(c===0xb0&&d1===67&&d2>=64)turn(1);
+}
+$('#mconn').onclick=connectMidi;$('#mconn2').onclick=connectMidi;
+try{navigator.permissions?.query({name:'midi'}).then(p=>{if(p.state==='granted')connectMidi()}).catch(()=>{})}catch(e){}
+
+/* ---------- score ---------- */
+let osmd=null,ready=false,mode='wait',running=false,timer=null,targets=new Set(),hit=new Set();const stats={ok:0,bad:0};
+const W=()=>240/Math.max(20,+$('#bpm').value||90);
+const hands=()=>$('#hands').value;
+$('#bpm').value=store.get('bpm',90);$('#hands').value=store.get('hands','both');
+$('#bpm').onchange=e=>store.set('bpm',+e.target.value);
+$('#hands').onchange=e=>{store.set('hands',e.target.value);stop();if(ready&&mode==='wait')arrive()};
+$('#metro').checked=store.get('metro',false);$('#metro').onchange=e=>store.set('metro',e.target.checked);
+
+function say(t,ms=2600){const m=$('#msg');m.textContent=t;m.classList.add('show');clearTimeout(say.t);if(ms)say.t=setTimeout(()=>m.classList.remove('show'),ms)}
+function paintStats(){
+  $('#sok').textContent=stats.ok;$('#sbad').textContent=stats.bad;
+  if(!ready){$('#sprog').textContent='–';return}
+  const it=osmd.cursor.Iterator,n=osmd.Sheet.SourceMeasures.length;
+  $('#sprog').textContent=it.EndReached?'End':`Bar ${Math.min(n,it.CurrentMeasureIndex+1)} / ${n}`;
+}
+const NM=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'],nn=m=>NM[m%12]+(Math.floor(m/12)-1);
+function paintTargets(){
+  $('#next').textContent=targets.size?[...targets].filter(m=>!hit.has(m)).sort((a,b)=>a-b).map(nn).join(' '):'';
+  $$('.k.target,.k.got').forEach(el=>el.classList.remove('target','got'));
+  targets.forEach(m=>keyEl[m]?.classList.add(hit.has(m)?'got':'target'));
+  if(targets.size){const ms=[...targets],w=$('#kbwrap'),lo=keyEl[Math.min(...ms)],hi=keyEl[Math.max(...ms)];
+    if(lo&&hi){const a=lo.offsetLeft,b=hi.offsetLeft+hi.offsetWidth;if(a<w.scrollLeft||b>w.scrollLeft+w.clientWidth)w.scrollTo({left:(a+b)/2-w.clientWidth/2,behavior:'smooth'})}}
+}
+function readPos(){
+  const out={mine:[],other:[],all:[],len:.25};let min=Infinity;const h=hands();
+  for(const n of osmd.cursor.NotesUnderCursor()){
+    const len=n.Length.RealValue;if(len>0&&len<min)min=len;
+    if(n.isRest())continue;if(n.NoteTie&&n.NoteTie.StartNote!==n)continue;
+    const it={m:n.halfTone+12,len},s=n.ParentStaff?.idInMusicSheet??0;
+    const mine=h==='both'||(h==='right'&&s===0)||(h==='left'&&s>0);
+    out.all.push(it);(mine?out.mine:out.other).push(it);
+  }
+  if(isFinite(min))out.len=min;return out;
+}
+function playAuto(list){list.forEach(x=>{synthOn(x.m,72);const el=keyEl[x.m];el?.classList.add('auto');setTimeout(()=>{el?.classList.remove('auto');if(!held.has(x.m))killVoice(x.m,.1)},x.len*W()*950)})}
+function nextDelta(pos){
+  const it=osmd.cursor.Iterator,ts=it.CurrentSourceTimestamp.RealValue,c=it.clone();c.moveToNext();
+  const d=c.EndReached?pos.len:c.CurrentSourceTimestamp.RealValue-ts;return d>0?d:pos.len;
+}
+function arrive(){
+  clearTimeout(timer);
+  if(!ready)return;
+  if(osmd.cursor.Iterator.EndReached){finish();return}
+  const pos=readPos();
+  if(mode==='wait'){
+    playAuto(pos.other);targets=new Set(pos.mine.map(x=>x.m));hit.clear();paintTargets();
+    if(!targets.size)timer=setTimeout(advance,nextDelta(pos)*W()*1000);
+  }
+  paintStats();follow();
+}
+function follow(){
+  const el=osmd?.cursor?.cursorElement;if(!el)return;
+  const sr=st.getBoundingClientRect(),er=el.getBoundingClientRect(),top=er.top-sr.top+st.scrollTop;
+  if(er.top<sr.top+4||er.bottom>sr.bottom-st.clientHeight*.15)st.scrollTo({top:Math.max(0,top-st.clientHeight*.12),behavior:'smooth'});
+}
+let lastW=0,rz;
+new ResizeObserver(()=>{clearTimeout(rz);rz=setTimeout(()=>{const w=$('#osmd').clientWidth;if(ready&&!$('#osmd').hidden&&w&&Math.abs(w-lastW)>4){lastW=w;osmd.render();osmd.cursor.show();osmd.cursor.update();follow()}},200)}).observe(document.querySelector('#stand'));
+function advance(){if(!ready)return;osmd.cursor.next();arrive()}
+function judge(m){
+  if(!ready||mode==='listen'||(mode==='tempo'&&!running))return;
+  if(targets.has(m)){
+    if(!hit.has(m)){hit.add(m);stats.ok++;paintTargets();paintStats()}
+    if(mode==='wait'&&hit.size===targets.size){clearTimeout(timer);setTimeout(advance,40)}
+  }else if(targets.size||mode==='tempo'){stats.bad++;flash(m,'bad');paintStats()}
+}
+function step(){
+  if(!running)return;
+  const it=osmd.cursor.Iterator;if(it.EndReached){finish();return}
+  const pos=readPos(),ts=it.CurrentSourceTimestamp.RealValue,dt=nextDelta(pos),w=W();
+  playAuto(mode==='listen'?pos.all:pos.other);
+  if(mode==='tempo'){targets=new Set(pos.mine.map(x=>x.m));hit.clear()}else{targets.clear();hit.clear()}
+  paintTargets();paintStats();follow();
+  if($('#metro').checked){const ms=it.CurrentMeasure.AbsoluteTimestamp.RealValue;for(let q=Math.ceil(ts*4-1e-6);q<(ts+dt)*4-1e-6;q++)click((q/4-ts)*w,Math.abs(q/4-ms)<1e-6)}
+  timer=setTimeout(()=>{if(mode==='tempo'){stats.bad+=targets.size-hit.size}osmd.cursor.next();step()},dt*w*1000);
+}
+function start(){
+  if(!ready){say('Open a MusicXML score first.');return}
+  audio();
+  if(mode==='wait'){arrive();say('Play the rose keys. The music waits for you.');return}
+  if(osmd.cursor.Iterator.EndReached)restart();
+  running=true;$('#go').textContent='Stop';
+  if(mode==='tempo'){const b=60/(+$('#bpm').value||90);for(let i=0;i<4;i++)click(i*b,i===0);say('Count-in: 1, 2, 3, 4',b*4000);timer=setTimeout(step,b*4000)}
+  else step();
+}
+function stop(){running=false;clearTimeout(timer);$('#go').textContent='Start';if(mode!=='wait'){targets.clear();paintTargets()}}
+function finish(){
+  stop();targets.clear();paintTargets();paintStats();
+  say(`Finished: ${stats.ok} correct, ${stats.bad} missed. Press Restart to go again.`,0);
+}
+function restart(){stop();if(!ready)return;osmd.cursor.reset();stats.ok=stats.bad=0;$('#msg').classList.remove('show');if(mode==='wait')arrive();else paintStats()}
+$('#go').onclick=()=>{wake();running?stop():start()};
+$('#restart').onclick=restart;
+$('#back').onclick=()=>{if(!ready)return;stop();osmd.cursor.previous();if(mode==='wait')arrive();else paintStats()};
+$('#step').onclick=()=>{if(!ready)return;stop();audio();if(mode==='wait')advance();else{playAuto(readPos().all);osmd.cursor.next();paintStats()}};
+$$('[data-mode]').forEach(b=>b.onclick=()=>{
+  stop();mode=b.dataset.mode;store.set('mode',mode);
+  $$('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#go').disabled=false;targets.clear();hit.clear();paintTargets();
+  if(ready&&mode==='wait')arrive();
+});
+{const m=store.get('mode','wait');const b=$(`[data-mode="${m}"]`);if(b)b.click()}
+
+let zoom=store.get('zoom',1);
+function setZoom(z){zoom=Math.max(.5,Math.min(2.5,Math.round(z*10)/10));store.set('zoom',zoom);if(osmd&&ready){osmd.zoom=zoom;osmd.render();osmd.cursor.show();osmd.cursor.update();follow()}}
+$('#zin').onclick=()=>setZoom(zoom+.1);$('#zout').onclick=()=>setZoom(zoom-.1);
+let lock=null;async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request('screen');lock.addEventListener('release',()=>lock=null)}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('.app').classList.contains('focus'))wake()});
+$('#focus').onclick=()=>{$('.app').classList.add('focus');wake();say('Tap Controls (top right) to bring the buttons back.')};
+$('#unfocus').onclick=()=>$('.app').classList.remove('focus');
+$('#fs').onclick=()=>{const d=document.documentElement;try{(document.fullscreenElement?document.exitFullscreen():(d.requestFullscreen||d.webkitRequestFullscreen).call(d))?.catch?.(()=>say('Full screen is not allowed here.'))}catch(e){say('Full screen is not allowed here.')}wake()};
+function view(v){
+  $('#empty').hidden=v!=='empty';$('#osmd').hidden=v!=='osmd';$('#pages').hidden=v!=='pages';
+  $('#pager').style.display=v==='pages'?'flex':'none';
+  $$('#go,#restart,#back,#step,[data-mode],#hands').forEach(el=>el.disabled=v!=='osmd');
+}
+async function loadXML(data,name){
+  stop();view('osmd');ready=false;say('Engraving '+name+'…',0);
+  try{
+    if(!osmd)osmd=new opensheetmusicdisplay.OpenSheetMusicDisplay($('#osmd'),{autoResize:false,backend:'svg',drawTitle:true,followCursor:false,cursorsOptions:[{type:0,color:'#E4007C',alpha:.3,follow:false}]});
+    await osmd.load(data);osmd.zoom=zoom;osmd.render();osmd.cursor.show();lastW=$('#osmd').clientWidth;ready=true;
+    const t=osmd.Sheet.DefaultStartTempoInBpm;if(t>0&&!store.get('bpmTouched',false))$('#bpm').value=Math.round(t);
+    $$('#go,#restart,#back,#step,[data-mode],#hands').forEach(el=>el.disabled=false);
+    stats.ok=stats.bad=0;restart();say(name+' loaded. Press Start, or just play.');
+  }catch(e){view('empty');say('Could not read that MusicXML file: '+(e.message||e),6000)}
+}
+$('#bpm').addEventListener('input',()=>store.set('bpmTouched',true));
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('could not load '+src));document.head.appendChild(s)})}
+async function loadPdf(buf,name){
+  stop();ready=false;view('pages');targets.clear();paintTargets();paintStats();
+  const P=$('#pages');P.innerHTML='';say('Opening '+name+'…',0);
+  try{
+    if(!window.pdfjsLib){const base='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';await loadScript(base+'pdf.worker.min.js');await loadScript(base+'pdf.min.js')}
+    const doc=await pdfjsLib.getDocument({data:buf}).promise;
+    for(let i=1;i<=doc.numPages;i++){
+      const pg=await doc.getPage(i),vp=pg.getViewport({scale:2}),c=document.createElement('canvas');
+      c.width=vp.width;c.height=vp.height;c.style.width=Math.min(vp.width/2,1000)+'px';P.appendChild(c);
+      await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+    }
+    say(`${name}: ${doc.numPages} page${doc.numPages>1?'s':''}. Free play; note following needs MusicXML.`,4000);
+  }catch(e){view('empty');say('Could not open that PDF: '+(e.message||e),6000)}
+}
+function loadImg(file){
+  stop();ready=false;view('pages');targets.clear();paintTargets();paintStats();
+  const P=$('#pages');P.innerHTML=`<img alt="${esc(file.name)}" src="${URL.createObjectURL(file)}">`;
+  say(file.name+' opened. Free play; note following needs MusicXML.',4000);
+}
+function openFile(f){
+  if(!f)return;audio();const n=f.name.toLowerCase(),r=new FileReader();
+  if(n.endsWith('.mxl')){r.onload=()=>loadXML(r.result,f.name);r.readAsBinaryString(f)}
+  else if(/\.(musicxml|xml)$/.test(n)){r.onload=()=>loadXML(r.result,f.name);r.readAsText(f)}
+  else if(n.endsWith('.pdf')){r.onload=()=>loadPdf(new Uint8Array(r.result),f.name);r.readAsArrayBuffer(f)}
+  else if(f.type.startsWith('image/'))loadImg(f);
+  else say('Open a MusicXML, PDF or image file.',4000);
+}
+$('#file').onchange=e=>{openFile(e.target.files[0]);e.target.value=''};
+const st=$('#stand');
+st.addEventListener('dragover',e=>{e.preventDefault();st.classList.add('drop')});
+st.addEventListener('dragleave',()=>st.classList.remove('drop'));
+st.addEventListener('drop',e=>{e.preventDefault();st.classList.remove('drop');openFile(e.dataTransfer.files[0])});
+function turn(d){st.scrollBy({top:d*st.clientHeight*.9,behavior:'smooth'})}
+$('#pnext').onclick=()=>turn(1);$('#pprev').onclick=()=>turn(-1);
+
+/* ---------- sample: Ode to Joy (Beethoven, public domain) ---------- */
+function sampleXML(){
+  const T={1:['eighth',0],2:['quarter',0],3:['quarter',1],4:['half',0],8:['whole',0]};
+  const note=(p,d,staff,voice)=>{const[t,dot]=T[d];return `<note><pitch><step>${p[0]}</step><octave>${p[1]}</octave></pitch><duration>${d}</duration><voice>${voice}</voice><type>${t}</type>${dot?'<dot/>':''}<staff>${staff}</staff></note>`};
+  const q=s=>s.split(' ').map(x=>x.split(':'));
+  const RH=['E4:2 E4:2 F4:2 G4:2','G4:2 F4:2 E4:2 D4:2','C4:2 C4:2 D4:2 E4:2','E4:3 D4:1 D4:4','E4:2 E4:2 F4:2 G4:2','G4:2 F4:2 E4:2 D4:2','C4:2 C4:2 D4:2 E4:2','D4:3 C4:1 C4:4'];
+  const LH=['C3:8','G2:8','C3:8','G2:8','C3:8','G2:8','C3:8','G2:4 C3:4'];
+  let ms='';
+  RH.forEach((r,i)=>{
+    ms+=`<measure number="${i+1}">`+(i?'':`<attributes><divisions>2</divisions><key><fifths>0</fifths></key><time><beats>4</beats><beat-type>4</beat-type></time><staves>2</staves><clef number="1"><sign>G</sign><line>2</line></clef><clef number="2"><sign>F</sign><line>4</line></clef></attributes><direction placement="above"><direction-type><metronome><beat-unit>quarter</beat-unit><per-minute>96</per-minute></metronome></direction-type><sound tempo="96"/></direction>`);
+    ms+=q(r).map(([p,d])=>note(p,+d,1,1)).join('')+'<backup><duration>8</duration></backup>'+q(LH[i]).map(([p,d])=>note(p,+d,2,5)).join('')+'</measure>';
+  });
+  return `<?xml version="1.0" encoding="UTF-8"?><score-partwise version="3.1"><work><work-title>Ode to Joy (sample)</work-title></work><identification><creator type="composer">L. van Beethoven</creator></identification><part-list><score-part id="P1"><part-name>Piano</part-name></score-part></part-list><part id="P1">${ms}</part></score-partwise>`;
+}
+$('#sample').onclick=()=>{audio();loadXML(sampleXML(),'Sample')};
+
+view('empty');
+if(window.opensheetmusicdisplay)loadXML(sampleXML(),'Sample');
+else say('The score engine did not load. Check your connection and reload.',0);
+}
+</script>
+</body>
+</html>
